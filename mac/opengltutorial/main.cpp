@@ -219,6 +219,10 @@ int main()
     // sides of cube
     glGenTextures(1, &texture_side);
     glBindTexture(GL_TEXTURE_2D, texture_side);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     data = stbi_load("/Users/georgewu/openglgame/mac/opengltutorial/resources/textures/grass/grass_side.png", &width, &height, &nrChannels, 3);
     if (data)
@@ -236,6 +240,10 @@ int main()
     // bottom of cube
     glGenTextures(1, &texture_bottom);
     glBindTexture(GL_TEXTURE_2D, texture_bottom);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     data = stbi_load("/Users/georgewu/openglgame/mac/opengltutorial/resources/textures/grass/grass_bottom.png", &width, &height, &nrChannels, 3);
     if (data)
