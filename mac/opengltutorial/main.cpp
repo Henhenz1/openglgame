@@ -21,6 +21,8 @@
 
 #include "camera/Camera.h"
 
+#include "block/Block.h"
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
@@ -41,6 +43,9 @@ float fov = 45.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float currentFrame;
+
+// world
+std::vector<Block> blocks;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -71,7 +76,10 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.Jump();
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+        camera.UnlockJump();
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera.Sprint();
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
@@ -86,6 +94,85 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
+void handleGravity() {
+    glm::vec3 pos = camera.Position;
+    float x = floor(pos.x);
+    float z = floor(pos.z);
+    float highest = -INFINITY;
+    for (Block b : blocks) {
+        if (b.position.x == x && b.position.z == z) {
+            highest = std::fmax(highest, b.position.y);
+        }
+    }
+    camera.Position.y = std::fmax(highest + 3, camera.Position.y + camera.YVelocity * deltaTime);
+    if (camera.Position.y < camera.killPlane) {
+        camera.Position = glm::vec3(0, 3, 0);
+    }
+    if (camera.Position.y == highest + 3) {
+        camera.YVelocity = 0;
+        camera.Gravity = -9.81f;
+        camera.grounded = true;
+    }
+    else {
+        camera.YVelocity += deltaTime * camera.Gravity;
+        camera.YVelocity = fmax(camera.TerminalVelocity, camera.YVelocity);
+    }
+}
+
+GLFWcursor* customCursor() {
+    
+    int width, height, nrChannels;
+    
+    unsigned char *cursor_img = stbi_load("/Users/georgewu/openglgame/mac/opengltutorial/resources/crosshair.png", &width, &height, &nrChannels, 0);
+    
+    
+    GLFWimage image;
+    image.width = width;
+    image.height = height;
+    image.pixels = cursor_img;
+
+    return glfwCreateCursor(&image, width/2, height/2);
+}
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
+
 
 int main()
 {
@@ -95,6 +182,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    
   
     
     // use glfw to create window
@@ -108,7 +196,12 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    
+//    // make crosshair cursor
+//    GLFWcursor* cursor = customCursor();
+//    glfwSetCursor(window, cursor);
+
     
     // use glad to load opengl pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -119,45 +212,52 @@ int main()
     
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
+    // enable usage of alpha value for transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // gamma correction
+    glEnable(GL_FRAMEBUFFER_SRGB);
     
     // build and compile shaders shader
-    Shader ourShader("/Users/georgewu/openglgame/mac/opengltutorial/resources/shaders/3d.vs", "/Users/georgewu/openglgame/mac/opengltutorial/resources/shaders/3d.fs");
+    Shader ourShader("/Users/georgewu/openglgame/mac/opengltutorial/resources/shaders/3d_lighting.vs", "/Users/georgewu/openglgame/mac/opengltutorial/resources/shaders/3d_lighting.fs");
     
-    // create vertices of triangle
-    float vertices[] = {
-        // positions         // texture coords
-         -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.5f,  0.0f, 1.0f,
-         -0.5f, 0.5f, 0.5f,  1.0f, 0.0f,
-         0.5f, 0.5f, 0.5f,   1.0f, 1.0f,
+    Shader chShader("/Users/georgewu/openglgame/mac/opengltutorial/resources/shaders/ch_shader.vs", "/Users/georgewu/openglgame/mac/opengltutorial/resources/shaders/ch_shader.fs");
+    
+    // create vertices of cube
+    float cubeVertices[] = {
+        // positions         // texture coords // normals
+         0.0f, 0.0f, 1.0f, 0.5f, 0.5f,    -1.0f, 0.0f, 0.0f,
+         1.0f, 0.0f, 1.0f,  1.0f, 0.5f,    -1.0f, 0.0f, 0.0f,
+         0.0f, 1.0f, 1.0f,  0.5f, 0.0f,    -1.0f, 0.0f, 0.0f,
+         1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    -1.0f, 0.0f, 0.0f,
 
-         0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-         0.5f, 0.5f, 0.5f,   1.0f, 0.0f,
-         0.5f, 0.5f, -0.5f,  1.0f, 1.0f,
+         1.0f, 0.0f, 1.0f,  0.5f, 0.5f,    0.0f, -1.0f, 0.0f,
+         1.0f, 0.0f, 0.0f, 1.0f, 0.5f,    0.0f, -1.0f, 0.0f,
+         1.0f, 1.0f, 1.0f,   0.5f, 0.0f,    0.0f, -1.0f, 0.0f,
+         1.0f, 1.0f, 0.0f,  1.0f, 0.0f,    0.0f, -1.0f, 0.0f,
 
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-         -0.5f, -0.5f, -0.5f,0.0f, 1.0f,
-         0.5f, 0.5f, -0.5f,  1.0f, 0.0f,
-         -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+         1.0f, 0.0f, 0.0f, 0.5f, 0.5f,    1.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,1.0f, 0.5f,    1.0f, 0.0f, 0.0f,
+         1.0f, 1.0f, 0.0f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
+         0.0f, 1.0f, 0.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f,
 
-         -0.5f, -0.5f, -0.5f,0.0f, 0.0f,
-         -0.5f, -0.5f, 0.5f, 0.0f, 1.0f,
-         -0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
-         -0.5f, 0.5f, 0.5f,  1.0f, 1.0f,
+         0.0f, 0.0f, 0.0f,0.5f, 0.5f,    0.0f, -1.0f, 0.0f,
+         0.0f, 0.0f, 0.5f, 1.0f, 0.5f,    0.0f, -1.0f, 0.0f,
+         0.0f, 1.0f, 0.0f, 0.5f, 0.0f,    0.0f, -1.0f, 0.0f,
+         0.0f, 1.0f, 1.0f,  1.0f, 0.0f,    0.0f, -1.0f, 0.0f,
 
-         -0.5f, -0.5f, -0.5f,0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-         -0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-         0.5f, -0.5f, 0.5f,  1.0f, 1.0f,
+         0.0f, 0.0f, 0.0f,0.0f, 0.5f,    0.0f, 0.0f, -1.0f,
+         1.0f, 0.0f, 0.0f, 0.0f, 1.0f,    0.0f, 0.0f, -1.0f,
+         0.0f, 0.0f, 1.0f, 0.5f, 0.5f,    0.0f, 0.0f, -1.0f,
+         1.0f, 0.0f, 1.0f,  0.5f, 1.0f,    0.0f, 0.0f, -1.0f,
 
-         -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-         0.5f, 0.5f, 0.5f,  0.0f, 1.0f,
-         -0.5f, 0.5f, -0.5f,1.0f, 0.0f,
-         0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+         0.0f, 1.0f, 1.0f, 0.0f, 0.0f,     0.0f, 0.0f, 1.0f,
+         1.0f, 1.0f, 1.0f,  0.0f, 0.5f,     0.0f, 0.0f, 1.0f,
+         0.0f, 1.0f, 0.0f,0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
+         1.0f, 1.0f, 0.0f, 0.5f, 0.5f,     0.0f, 0.0f, 1.0f
     };
     
-    unsigned int indices[] = {
+    unsigned int cubeIndices[] = {
         //faces
         0,1,3,      0,3,2,          // Face front
         4,5,7,      4,7,6,          // Face right
@@ -167,115 +267,76 @@ int main()
         20,21,23,   20,23,22,
     };
     
+    float chVertices[] = {
+        // positions
+         -0.004f, -0.05f, 0.5f,
+         0.004f, -0.05f, 0.5f,
+         -0.004f, 0.05f, 0.5f,
+         0.004f, 0.05f, 0.5f,
+        -0.05f, -0.005f, 0.5f,
+        0.05f, -0.005f, 0.5f,
+        -0.05f, 0.005f, 0.5f,
+        0.05f, 0.005f, 0.5f
+    };
+    
+    unsigned int chIndices[] = {
+        // lines
+        0,1,3,      0,3,2,          // vertical crosshair
+        4,5,7,      4,7,6           // horizontal crosshair
+    };
     
     // generate vertex buffer objects, vertex array objects, element buffer objects
-    unsigned int VBO, VAO, EBO;
-    glGenBuffers(1, &VBO);
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &EBO);
+    unsigned int VBOs[2], VAOs[2], EBOs[2];
+    glGenBuffers(2, VBOs);
+    glGenVertexArrays(2, VAOs);
+    glGenBuffers(2, EBOs);
     
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+    glBindVertexArray(VAOs[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
     
     // tell opengl how to interpret vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     // texture
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    // normals
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+                 
     
-    
-    // generate a texture
-    unsigned int texture_top, texture_side, texture_bottom;
-    glGenTextures(1, &texture_top);
-    glBindTexture(GL_TEXTURE_2D, texture_top);
-    // set texture wrapping/filtering options
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // load and generate textures
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
-    
-    // top of cube
-    unsigned char *data = stbi_load("/Users/georgewu/openglgame/mac/opengltutorial/resources/textures/grass/grass_top.png", &width, &height, &nrChannels, 3);
-    if (data)
-    {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-    
-    // sides of cube
-    glGenTextures(1, &texture_side);
-    glBindTexture(GL_TEXTURE_2D, texture_side);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    data = stbi_load("/Users/georgewu/openglgame/mac/opengltutorial/resources/textures/grass/grass_side.png", &width, &height, &nrChannels, 3);
-    if (data)
-    {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-    
-    // bottom of cube
-    glGenTextures(1, &texture_bottom);
-    glBindTexture(GL_TEXTURE_2D, texture_bottom);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    data = stbi_load("/Users/georgewu/openglgame/mac/opengltutorial/resources/textures/grass/grass_bottom.png", &width, &height, &nrChannels, 3);
-    if (data)
-    {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
+    glBindVertexArray(VAOs[1]);    // note that we bind to a different VAO now
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);    // and a different VBO
+    glBufferData(GL_ARRAY_BUFFER, sizeof(chVertices), chVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(chIndices), chIndices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // because the vertex data is tightly packed we can also specify 0 as the vertex attribute's stride to let OpenGL figure it out
+    glEnableVertexAttribArray(0);
+
+    unsigned int texture_all = loadTexture("/Users/georgewu/openglgame/mac/opengltutorial/resources/textures/grass_all.png");
     
     ourShader.use();
     
     // set uniforms
-    ourShader.setInt("texture_top", 0);
-    ourShader.setInt("texture_side", 1);
-    ourShader.setInt("texture_bottom", 5);
-    
-    unsigned int texture[] = {
-        texture_side,
-        texture_side,
-        texture_side,
-        texture_side,
-        texture_bottom,
-        texture_top
-    };
+    ourShader.setInt("texture_all", 3);
     
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     ourShader.setMat4("projection", projection);
+    
+    // generating the initial plain of grass
+    for (float j = -20.0; j < 20.0; j += 1)
+    {
+        for (float i = -20.0; i < 20.0; i += 1)
+        {
+            blocks.emplace_back(glm::vec3(i, -1, j), grass, true);
+        }
+    }
+    
+    
+    glm::vec3 lightPos(0.0f, 7.0f, 0.0f);
     
     while(!glfwWindowShouldClose(window))
     {
@@ -283,7 +344,10 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        handleGravity();
         processInput(window);
+        
+        ourShader.use();
         
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         // clear color and depth buffer
@@ -292,50 +356,46 @@ int main()
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // draws in wireframe mode
         //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // to undo wireframe mode
         
-        // pass projection matrix to shader (note that in this case it could change every frame)
+        
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.setMat4("projection", projection);
-
-        // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
+        ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
+        // set light uniforms
+        ourShader.setVec3("viewPos", camera.Position);
+        ourShader.setVec3("lightPos", lightPos);
+
+        int index = 0;
         
-        int index;
-        
-        glBindVertexArray(VAO);
-        for(float j = 0.0; j < 5.0; j+=0.5)
+        glBindVertexArray(VAOs[0]);
+        glBindTexture(GL_TEXTURE_2D, texture_all);   //use texture of ith face
+        ourShader.use();
+        for (Block b : blocks)
         {
-            for(float i = 0.0; i < 5.0; i+=0.5)
-            {
-              glm::mat4 model = glm::mat4(1.0f);
-              model = glm::translate(model, glm::vec3( i, -1, j));
-              //float angle = 20.0f * i;
-              //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-              ourShader.setMat4("model", model);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, b.position);
+            ourShader.setMat4("model", model);
 
-              for(int k=0; k<6; ++k)
-              {
-                  glBindTexture(GL_TEXTURE_2D, texture[k]);   //use texture of ith face
-                  ourShader.use();
-                  
-                  index = 6*k;                //select ith face
-
-                  //draw 2 triangles making up this face
-                  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(index * sizeof(GLuint)));
-              }
-            }
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)(index * sizeof(GLuint)));
         }
+        
+        glBindVertexArray(VAOs[1]);
+        chShader.use();
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     
     // delete resources after use
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, VAOs);
+    glDeleteBuffers(1, VBOs);
+    glDeleteBuffers(1, EBOs);
     
     glfwTerminate();
     return 0;
 }
+
+
+
 

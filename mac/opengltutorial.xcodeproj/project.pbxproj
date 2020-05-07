@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7B60B3262457936500FA20A5 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B60B3252457936500FA20A5 /* libglfw3.a */; };
+		7B812E632463BF7400719FA1 /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B812E622463BF7400719FA1 /* Block.cpp */; };
 		7BE6888B24565FB30047E6BE /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BE6888A24565FB30047E6BE /* main.cpp */; };
 		7BE6889324565FDD0047E6BE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BE6889224565FDD0047E6BE /* OpenGL.framework */; };
 		7BE6889524565FE60047E6BE /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BE6889424565FE60047E6BE /* GLUT.framework */; };
@@ -30,6 +31,10 @@
 
 /* Begin PBXFileReference section */
 		7B60B3252457936500FA20A5 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = glfw_files/libs/libglfw3.a; sourceTree = "<group>"; };
+		7B812E5A2463742D00719FA1 /* irrKlang.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = irrKlang.lib; path = files/libs/irrKlang.lib; sourceTree = "<group>"; };
+		7B812E5C2463751E00719FA1 /* libirrklang.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libirrklang.dylib; path = files/libs/libirrklang.dylib; sourceTree = "<group>"; };
+		7B812E5E246376A400719FA1 /* libirrKlang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libirrKlang.a; path = files/libs/libirrKlang.a; sourceTree = "<group>"; };
+		7B812E622463BF7400719FA1 /* Block.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; };
 		7BE6888724565FB30047E6BE /* opengltutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = opengltutorial; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BE6888A24565FB30047E6BE /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		7BE6889224565FDD0047E6BE /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -78,6 +83,7 @@
 		7BE6888924565FB30047E6BE /* opengltutorial */ = {
 			isa = PBXGroup;
 			children = (
+				7B812E622463BF7400719FA1 /* Block.cpp */,
 				7BE6888A24565FB30047E6BE /* main.cpp */,
 				7BE688A1245684600047E6BE /* glad.c */,
 			);
@@ -87,6 +93,9 @@
 		7BE6889124565FDC0047E6BE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7B812E5E246376A400719FA1 /* libirrKlang.a */,
+				7B812E5C2463751E00719FA1 /* libirrklang.dylib */,
+				7B812E5A2463742D00719FA1 /* irrKlang.lib */,
 				7B60B3252457936500FA20A5 /* libglfw3.a */,
 				7BE6889F2456835D0047E6BE /* libglfw.3.3.dylib */,
 				7BE6889D245682460047E6BE /* IOKit.framework */,
@@ -109,6 +118,7 @@
 				7BE6888324565FB30047E6BE /* Sources */,
 				7BE6888424565FB30047E6BE /* Frameworks */,
 				7BE6888524565FB30047E6BE /* CopyFiles */,
+				7B812E612463789A00719FA1 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -151,11 +161,32 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		7B812E612463789A00719FA1 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		7BE6888324565FB30047E6BE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B812E632463BF7400719FA1 /* Block.cpp in Sources */,
 				7BE6888B24565FB30047E6BE /* main.cpp in Sources */,
 				7BE688A2245684600047E6BE /* glad.c in Sources */,
 			);
@@ -281,6 +312,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					files/libs/,
 					"$(PROJECT_DIR)/glfw_files/libs",
+					"$(PROJECT_DIR)/files/libs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -294,6 +326,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					files/libs/,
 					"$(PROJECT_DIR)/glfw_files/libs",
+					"$(PROJECT_DIR)/files/libs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
