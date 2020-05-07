@@ -21,6 +21,8 @@
 
 #include "camera/Camera.h"
 
+#include "block/Block.h"
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
@@ -41,6 +43,9 @@ float fov = 45.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float currentFrame;
+
+// world
+std::vector<Block> blocks;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -71,7 +76,10 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.Jump();
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+        camera.UnlockJump();
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera.Sprint();
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
@@ -84,6 +92,31 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+void handleGravity() {
+    glm::vec3 pos = camera.Position;
+    float x = floor(pos.x);
+    float z = floor(pos.z);
+    float highest = -INFINITY;
+    for (Block b : blocks) {
+        if (b.position.x == x && b.position.z == z) {
+            highest = std::fmax(highest, b.position.y);
+        }
+    }
+    camera.Position.y = std::fmax(highest + 3, camera.Position.y + camera.YVelocity * deltaTime);
+    if (camera.Position.y < camera.killPlane) {
+        camera.Position = glm::vec3(0, 3, 0);
+    }
+    if (camera.Position.y == highest + 3) {
+        camera.YVelocity = 0;
+        camera.Gravity = -9.81f;
+        camera.grounded = true;
+    }
+    else {
+        camera.YVelocity += deltaTime * camera.Gravity;
+        camera.YVelocity = fmax(camera.TerminalVelocity, camera.YVelocity);
+    }
 }
 
 GLFWcursor* customCursor() {
@@ -193,35 +226,35 @@ int main()
     // create vertices of cube
     float cubeVertices[] = {
         // positions         // texture coords // normals
-         -0.5f, -0.5f, 0.5f, 0.5f, 0.5f,    -1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.5f,  1.0f, 0.5f,    -1.0f, 0.0f, 0.0f,
-         -0.5f, 0.5f, 0.5f,  0.5f, 0.0f,    -1.0f, 0.0f, 0.0f,
-         0.5f, 0.5f, 0.5f,   1.0f, 0.0f,    -1.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 1.0f, 0.5f, 0.5f,    -1.0f, 0.0f, 0.0f,
+         1.0f, 0.0f, 1.0f,  1.0f, 0.5f,    -1.0f, 0.0f, 0.0f,
+         0.0f, 1.0f, 1.0f,  0.5f, 0.0f,    -1.0f, 0.0f, 0.0f,
+         1.0f, 1.0f, 1.0f,   1.0f, 0.0f,    -1.0f, 0.0f, 0.0f,
 
-         0.5f, -0.5f, 0.5f,  0.5f, 0.5f,    0.0f, -1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 0.5f,    0.0f, -1.0f, 0.0f,
-         0.5f, 0.5f, 0.5f,   0.5f, 0.0f,    0.0f, -1.0f, 0.0f,
-         0.5f, 0.5f, -0.5f,  1.0f, 0.0f,    0.0f, -1.0f, 0.0f,
+         1.0f, 0.0f, 1.0f,  0.5f, 0.5f,    0.0f, -1.0f, 0.0f,
+         1.0f, 0.0f, 0.0f, 1.0f, 0.5f,    0.0f, -1.0f, 0.0f,
+         1.0f, 1.0f, 1.0f,   0.5f, 0.0f,    0.0f, -1.0f, 0.0f,
+         1.0f, 1.0f, 0.0f,  1.0f, 0.0f,    0.0f, -1.0f, 0.0f,
 
-         0.5f, -0.5f, -0.5f, 0.5f, 0.5f,    1.0f, 0.0f, 0.0f,
-         -0.5f, -0.5f, -0.5f,1.0f, 0.5f,    1.0f, 0.0f, 0.0f,
-         0.5f, 0.5f, -0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
-         -0.5f, 0.5f, -0.5f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f,
+         1.0f, 0.0f, 0.0f, 0.5f, 0.5f,    1.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,1.0f, 0.5f,    1.0f, 0.0f, 0.0f,
+         1.0f, 1.0f, 0.0f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
+         0.0f, 1.0f, 0.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f,
 
-         -0.5f, -0.5f, -0.5f,0.5f, 0.5f,    0.0f, -1.0f, 0.0f,
-         -0.5f, -0.5f, 0.5f, 1.0f, 0.5f,    0.0f, -1.0f, 0.0f,
-         -0.5f, 0.5f, -0.5f, 0.5f, 0.0f,    0.0f, -1.0f, 0.0f,
-         -0.5f, 0.5f, 0.5f,  1.0f, 0.0f,    0.0f, -1.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,0.5f, 0.5f,    0.0f, -1.0f, 0.0f,
+         0.0f, 0.0f, 0.5f, 1.0f, 0.5f,    0.0f, -1.0f, 0.0f,
+         0.0f, 1.0f, 0.0f, 0.5f, 0.0f,    0.0f, -1.0f, 0.0f,
+         0.0f, 1.0f, 1.0f,  1.0f, 0.0f,    0.0f, -1.0f, 0.0f,
 
-         -0.5f, -0.5f, -0.5f,0.0f, 0.5f,    0.0f, 0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f,    0.0f, 0.0f, -1.0f,
-         -0.5f, -0.5f, 0.5f, 0.5f, 0.5f,    0.0f, 0.0f, -1.0f,
-         0.5f, -0.5f, 0.5f,  0.5f, 1.0f,    0.0f, 0.0f, -1.0f,
+         0.0f, 0.0f, 0.0f,0.0f, 0.5f,    0.0f, 0.0f, -1.0f,
+         1.0f, 0.0f, 0.0f, 0.0f, 1.0f,    0.0f, 0.0f, -1.0f,
+         0.0f, 0.0f, 1.0f, 0.5f, 0.5f,    0.0f, 0.0f, -1.0f,
+         1.0f, 0.0f, 1.0f,  0.5f, 1.0f,    0.0f, 0.0f, -1.0f,
 
-         -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,     0.0f, 0.0f, 1.0f,
-         0.5f, 0.5f, 0.5f,  0.0f, 0.5f,     0.0f, 0.0f, 1.0f,
-         -0.5f, 0.5f, -0.5f,0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
-         0.5f, 0.5f, -0.5f, 0.5f, 0.5f,     0.0f, 0.0f, 1.0f
+         0.0f, 1.0f, 1.0f, 0.0f, 0.0f,     0.0f, 0.0f, 1.0f,
+         1.0f, 1.0f, 1.0f,  0.0f, 0.5f,     0.0f, 0.0f, 1.0f,
+         0.0f, 1.0f, 0.0f,0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
+         1.0f, 1.0f, 0.0f, 0.5f, 0.5f,     0.0f, 0.0f, 1.0f
     };
     
     unsigned int cubeIndices[] = {
@@ -293,6 +326,15 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     ourShader.setMat4("projection", projection);
     
+    // generating the initial plain of grass
+    for (float j = -20.0; j < 20.0; j += 1)
+    {
+        for (float i = -20.0; i < 20.0; i += 1)
+        {
+            blocks.emplace_back(glm::vec3(i, -1, j), grass, true);
+        }
+    }
+    
     
     glm::vec3 lightPos(0.0f, 7.0f, 0.0f);
     
@@ -302,6 +344,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        handleGravity();
         processInput(window);
         
         ourShader.use();
@@ -322,29 +365,18 @@ int main()
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setVec3("lightPos", lightPos);
 
-        int index;
+        int index = 0;
         
         glBindVertexArray(VAOs[0]);
         glBindTexture(GL_TEXTURE_2D, texture_all);   //use texture of ith face
         ourShader.use();
-        for(float j = 0.0; j < 5.0; j+=1)
+        for (Block b : blocks)
         {
-            for(float i = 0.0; i < 5.0; i+=1)
-            {
-              glm::mat4 model = glm::mat4(1.0f);
-              model = glm::translate(model, glm::vec3( i, -1, j));
-              //float angle = 20.0f * i;
-              //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-              ourShader.setMat4("model", model);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, b.position);
+            ourShader.setMat4("model", model);
 
-              for(int k=0; k<6; ++k)
-              {
-                  index = 6*k;                //select ith face
-
-                  //draw 2 triangles making up this face
-                  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(index * sizeof(GLuint)));
-              }
-            }
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)(index * sizeof(GLuint)));
         }
         
         glBindVertexArray(VAOs[1]);
