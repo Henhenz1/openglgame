@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <math.h>
+#include "Block.h"
 
 enum Camera_Movement {
 	FORWARD,
@@ -67,8 +68,9 @@ public:
 		return glm::lookAt(Position, Position + Front, Up);
 	}
 
-	void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
+	void ProcessKeyboard(Camera_Movement direction, float deltaTime, std::vector<Block> blocks) {
 		float velocity = MovementSpeed * deltaTime;
+		glm::vec3 prevPos = Position;
 		float sprintFactor = 1;
 		glm::vec3 mFront = glm::normalize(glm::vec3(Front.x, 0, Front.z));
 		glm::vec3 mRight = glm::normalize(glm::vec3(Right.x, 0, Right.z));
@@ -82,7 +84,32 @@ public:
 			Position -= mRight * velocity;
 		if (direction == RIGHT)
 			Position += mRight * velocity;
+
+		for (Block b : blocks) {
+			if (inRange(0, 2, Position.y - b.position.y)) {
+				if (Position.x < b.position.x + 1.3 && Position.x > b.position.x - 0.3) {
+					if (Position.z < b.position.z + 1.3 && prevPos.z >= b.position.z + 1.3) {
+						Position.z = b.position.z + 1.3;
+					}
+					else if (Position.z > b.position.z - 0.3 && prevPos.z <= b.position.z - 0.3) {
+						Position.z = b.position.z - 0.3;
+					}
+				}
+				if (Position.z < b.position.z + 1.3 && Position.z > b.position.z - 0.3) {
+					if (Position.x < b.position.x + 1.3 && prevPos.x >= b.position.x + 1.3) {
+						Position.x = b.position.x + 1.3;
+					}
+					else if (Position.x > b.position.x - 0.3 && prevPos.x <= b.position.x - 0.3) {
+						Position.x = b.position.x - 0.3;
+					}
+				}
+			}
+		}
 		// walking diagonally faster. how to fix?
+	}
+
+	bool inRange(float low, float high, float x) {
+		return (x - high) * (x - low) <= 0;
 	}
 
 	void ProcessMouseMovement(float xoffset, float yoffset) {

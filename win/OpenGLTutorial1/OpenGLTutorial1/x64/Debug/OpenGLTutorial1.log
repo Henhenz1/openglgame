@@ -1,11 +1,31 @@
 ﻿  main.cpp
 C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Shader.h(56,41): warning C4101: 'e': unreferenced local variable
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Camera.h(112,1): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(228,35): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(288,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(289,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(293,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(294,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(296,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(297,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Camera.h(92,33): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Camera.h(95,33): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Camera.h(100,33): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Camera.h(103,33): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\Camera.h(139,1): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(235,35): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(295,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(296,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(300,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(301,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(303,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Henry\source\repos\OpenGLTutorial1\OpenGLTutorial1\main.cpp(304,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   OpenGLTutorial1.vcxproj -> C:\Users\Henry\source\repos\OpenGLTutorial1\x64\Debug\OpenGLTutorial1.exe
