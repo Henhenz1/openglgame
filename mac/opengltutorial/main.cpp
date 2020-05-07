@@ -85,13 +85,13 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         camera.Desprint();
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, deltaTime, blocks);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, deltaTime, blocks);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, deltaTime, blocks);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, deltaTime, blocks);
 }
 
 void handleGravity() {
@@ -332,6 +332,13 @@ int main()
         for (float i = -20.0; i < 20.0; i += 1)
         {
             blocks.emplace_back(glm::vec3(i, -1, j), grass, true);
+        }
+    }
+    for (float j = -5.0; j < 5.0; j += 1)
+    {
+        for (float i = -5.0; i < 5.0; i += 1)
+        {
+            blocks.emplace_back(glm::vec3(i, 0, j), grass, true);
         }
     }
     
