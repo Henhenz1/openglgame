@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <style>
@@ -32,6 +32,10 @@
 <br>
 <br>
 <a href="milestone.html">Milestone Status Report</a>
+</div>
+<br>
+<div align="middle">
+<a href=https://drive.google.com/file/d/1Ei4W2NXqjd80Zq0HprPnsz0zPmi2q8SB/view> Video Link</a>
 </div>
 <br>
 <h2 align="middle">Abstract:</h2>
@@ -90,20 +94,62 @@ Through the use of a texture atlas, we can avoid re-binding a texture every time
 
 <h3 align="middle">The Block Class</h3>
 
-<p></p>
-
-<br><br>
-
-<h3 align="middle">Placing and Removing Blocks</h3>
-
-<p></p>
+    <p>
+        We created a Block class to encapsulate some key features of blocks. A Block object stores the block's position as a 3D vector, and block type as an enum for rendering purposes. 
+        The block's position is stored as the vertex furthest in the negative X, Y, and Z directions; since all blocks are cubes with side lengths 1 unit long, this is sufficient 
+        to fully define the block. We also added some other properties, such as whether or not the block was solid, but these were not utilized in our latest build.
+    </p>
+    <p>
+        The game keeps track of what Blocks are active by storing Block objects in a vector. Blocks are added to and removed from this vector during place and destroy actions, and information  
+        from the vector is used to render all blocks each frame. This is done by rendering a prewritten set of vertices for a cube at the Block's position. We settled on this system because 
+        it was simple to implement and iterate on, and we didn't want to spend too long developing data structures and risk running out of time to write the rest of the game.
+    </p>
+    <p>
+        This naive rendering scheme is relatively inefficient, as iterating through a vector to render blocks one by one is slow. Instanced rendering could speed up the rendering process 
+        dramatically, but would require more code infrastructure to render different types (textures) of blocks in a scalable way. Another way of rendering blocks would be to use an octree, 
+        which would allow us to recursively divide world space into cubes with eight octants and render large sections of same-type cubes quickly. For a complete large-scale voxel game, the 
+        choice of rendering scheme has a massive impact on the overall performance of the game, so our vector-based iterative scheme would be high on the priority list for future improvements.
+    </p>
 
 <br><br>
 
 <h3 align="middle">The Camera, and Movement</h3>
 
-<p></p>
+    <p>
+        Our camera-related functions are grouped into a Camera class, which also essentially encapsulates attributes of the player character. A Camera stores information about its position, 
+        the upward direction of the world, the camera's front-, upward-, and right-facing angles, pitch, yaw, and mouse sensitivity. These are used with related functions in the glm library 
+        such as lookAt() to obtain transformation matrices for rendering the world. It also stores the strength of gravity, terminal velocity, and the height of the world's kill plane, which 
+        resets a player's position if they fall below it. 
+    </p>
+    <p>
+        Player information stored by the Camera class includes the player's movement speed, height, current Y velocity, and sprinting and jumping status. Whenever the WASD keys are pressed, the 
+        camera moves in the direction the camera is facing, projected to the XZ plane and normalized, at a rate dictated by the MovementSpeed member. Jumping with the space bar imparts a small upward 
+        velocity to the camera that is gradually reversed over the next second or so. Sprinting with the Left Shift key simply doubles the camera's forward movement speed. At each frame, the position of 
+        the camera is compared against the position of all blocks in the world, and if these positions collide, a small displacement is applied to the camera in the offending direction.
+    </p>
+    <p>
+        The Camera class also handles the placement and removal of blocks, so it keeps a pointer to the world Block vector, as well as other important variables for block selection such as the maximum 
+        selection range, the index in the world Block vector of the currently selected block, and the position vector of a new block to be placed.
+    </p>
 
+<br><br>
+
+    <h3 align="middle">Placing and Removing Blocks</h3>
+
+    <p>
+        Perhaps the most important feature of a Minecraft-like game is the ability to place and remove blocks as desired. To do this, we implemented the updateLook() function in our Camera 
+        class, which uses a Bresenham-like algorithm to trace a ray from the world camera to the first block it reaches within some range. The function is called whenever the player attempts 
+        to place or destroy a block. When attempting to find a block, the algorithm extends the ray until an integer threshold is crossed in one of the three vector coordinates at the ray tip 
+        and checks to see if the world Block vector contains a Block containing that point. Once a block is found, the algorithm stores both the currently selected block (if in range) and the 
+        prospective location of a new block (if one were to be placed) in the CurrentBlockIndex and NextBlock members of the Camera class, respectively. If no blocks are found in range, these 
+        are set to -1 and NULL so that blocks are not placed in or removed from unexpected places. 
+    </p>
+    <p>
+        Blocks are placed with the right mouse button and removed with the left mouse button. The PlaceBlock() function in the Camera class first calls updateLook() to calculate where a block 
+        should be placed. If it finds a valid location, it then checks if a block with that location exists in the world Block vector. If no such block exists, then a block with the given 
+        position and type is emplaced at the back of the world Block vector and is rendered on the next draw frame. The DestroyBlock() function (also in the Camera class) calls updateLook() to 
+        determine the index of the block that should be removed, and then erases that Block from the world Block vector.
+    </p>
 <br><br>
 
 <h3 align="middle">Shaders</h3>
