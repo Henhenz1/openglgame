@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>Final Project Proposal: Cube Constructor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">Cube Constructor</h1>
+<h1 align="middle">Final Project Proposal</h1>
+<h2 align="middle">Team members:</h2>
+<h3 align="middle">Grant Shimada 3031995253, George Wu 3032379223, Henry Zhang 3031862185</h3>
+
+<br>
+<h2 align="middle">Project Summary:</h2>
+
+<p>For this project, we will create a Minecraft clone in C++ using the OpenGL Library. In the game, the player should be able to move around, and be able to manipulate blocks by destroying or placing them.</p>
+<br>
+
+<div>
+
+<h2 align="middle">Problem Description:</h2>
+
+<p>We will tackle the problem of rendering a large number of entities (blocks) in a game world traversable by the player. Rendering the whole world at full detail all the time is inefficient, so we will implement optimization techniques to speed up our game. Some techniques we may employ are selective rendering and reducing the level of detail for far away entities. We will also render appropriate environment lighting and general environment aesthetics, by employing techniques like ray tracing and path tracing. Of course, we will also have basic “game” (more like sandbox) capabilities.</p>
+
+<h2 align="middle">Goals and Deliverables:</h2>
+<h3 align="middle">Questions we hope to answer:</h3>
+<ol type="1">
+  <li>How can we efficiently render a game world containing a large number of interactable entities?</li>
+  <li>How can we illuminate the game world realistically?</li>
+  <li>How can we make cubelike blocks look like real objects? (time permitting)</li>
+  <li>How do we simulate a day/night cycle with respect to world lighting? (time permitting)</li>
+</ol>
+
+<h3 align="middle">What we plan to deliver:</h3>
+
+<ul>
+  <li>Playable game with an environment made of blocks</li>
+  <li>The player will be able to destroy and build blocks.</li>
+  <li>The player will be able to control a character that moves around the game world.</li>
+  <li>The game world will be an island that contains several types of blocks with different appearances.</li>
+  <li>The game world will render at acceptable speeds. (Question 1)</li>
+	  	<ul>
+	  		<li>Metric: frames rendered per second, target >= 20</li>
+	  	</ul>
+  <li>The game world will incorporate realistic lighting with an immobile light source. (Question 2)</li>
+  		<ul>
+	  		<li>Metric: visual judgment, feedback from test trials</li>
+	  	</ul>
+</ul>
+
+<h3 align="middle">What we hope to deliver:</h3>
+
+<ul>
+  <li>Make the blocks look more realistic by implementing textures with bump mapping. (Question 3)</li>
+  <li>Include more types of blocks (e.g. rocks, dirt, lava)</li>
+  <li>Implement a day/night cycle with a sun that rises and sets (Question 4)</li>
+  <li>Be able to randomly generate game worlds according to parameters such as size, flatness, etc.</li>
+  <li>Make a game that’s enjoyable to play</li>
+	  	<ul>
+	  		<li>Metric: feedback from test trials</li>
+	  	</ul>
+  <li>Include background music</li>
+</ul>
+
+<h2 align="middle">Schedule:</h2>
+<ul>
+	<li>Week 1:</li>
+	  	<ul>
+	  		<li>Learning OpenGL</li>
+	  		<li>Making assets (different block types, game world)</li>
+	  	</ul>
+	<li>Week 2:</li>
+	  	<ul>
+	  		<li>Make game with movable character</li>
+	  		<li>Add world interaction: destroying and placing blocks</li>
+	  	</ul>
+	<li>Week 3:</li>
+	  	<ul>
+	  		<li>Lighting and rendering optimization</li>
+	  		<li>Debugging</li>
+	  	</ul>
+	<li>Week 4:</li>
+	  	<ul>
+	  		<li>Test trials</li>
+	  		<li>Demo video + make presentation</li>
+	  		<li>Stretch goals</li>
+	  	</ul>
+</ul>
+
+<h2 align="middle">Resources:</h2>
+<ul>
+  <li><a href="https://learnopengl.com/">Online OpenGL tutorials</a></li>
+  <li>Stack Overflow, Google</li>
+  <li>Made with: OpenGL, C++</li>
+  <li>Hardware: 2 PCs, 1 Mac</li>
+</ul>
+
+
+</body>
+</html>

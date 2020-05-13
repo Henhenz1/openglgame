@@ -15,7 +15,7 @@
     font-family: 'Source Sans Pro', sans-serif;
   }
 </style>
-<title>Final Project Proposal: Cube Constructor</title>
+<title>Final Project Webpage: Cube Constructor</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
 </head>
@@ -24,94 +24,187 @@
 <body>
 
 <h1 align="middle">Cube Constructor</h1>
-<h1 align="middle">Final Project Proposal</h1>
 <h2 align="middle">Team members:</h2>
 <h3 align="middle">Grant Shimada 3031995253, George Wu 3032379223, Henry Zhang 3031862185</h3>
 
+<div align="middle">
+<a href="proposal.html">Project Proposal</a>
 <br>
-<h2 align="middle">Project Summary:</h2>
+<br>
+<a href="milestone.html">Milestone Status Report</a>
+</div>
+<br>
+<h2 align="middle">Abstract:</h2>
 
-<p>For this project, we will create a Minecraft clone in C++ using the OpenGL Library. In the game, the player should be able to move around, and be able to manipulate blocks by destroying or placing them.</p>
+<p>
+Cube Constructor is our attempt at creating a Minecraft-like game in C++ using OpenGL. In our game, we should be able to render an open-world space made up of different types of textured blocks. The player should be able to move around this space, and also manipulate blocks by destroying or placing them. Our main technical challenge was learning how to create a 3D game engine from scratch using OpenGL; learnopengl.com was a great resource in doing this. We also tackled problems regarding texture mapping, lighting, and game physics (block collision, jumping, gravity). We also strived to be able to render our game efficiently, using various techniques to speed up our rendering process.
+</p>
+<br><br>
+
+
+<h2 align="middle">Technical Approach:</h2>
+
+<h3 align="middle">VBOs, VAOs, & EBOs</h3>
+<p>
+<b>Vertex Buffer Objects (VBO):</b>
+<br><br>
+We use VBOs to store vertices that we want to render into our GPU's memory for processing by the vertex shader. This is helpful, because sending data to the GPU is pretty slow, so the VBO helps us send large batches of data at a time.
+<br><br>
+Once passed into the GPU's memory, we also have to use the function glVertexAttributePointer() in order to tell the vertex shader how to interpret the data. For example, if our vertices are made up of (x, y, z) coordinates. However, this action must be repeated every time we draw an object. When you end up having to render many triangles into a scene, this quickly becomes cumbersome. This leads us into the next type of buffer we will look at.
+<br><br><br>
+<b>Vertex Array Objects (VAO):</b>
+<br><br>
+VAOs are bound similarly to VBOs, and are used to store info from vertex attribute calls. This means that whenever we want to make a vertex attribute call, we only have to do it once, and then we can simply bind a VAO for subsequent uses. This simplifies the process greatly, so that whenever we want to switch to a different configuration, we simply have to use a different VAO.
+<br><br><br>
+<b>Element Buffer Objects (EBO):</b>
+<br><br>
+EBOs are used to more efficiently make use of vertices. Without using an EBO, we would have to use 6 vertices to define a rectangle (3 for each of the 2 triangles that make up the rectangle). EBOs allow us to pick specific vertices to use when drawing, so we can render a rectangle using only 4 vertices (by reusing 2 of them). This means that we also have to specify a separate array of indices to use in our EBO.
+<div align="center">
+  <img src="images/EBO_1.png" align="middle" width="40%" alt="with 6 vertices">
+  <img src="images/EBO_2.png" align="middle" width="55%" alt="with 4 vertices and indices">
+  Images of code from learnopengl.com
+</div>
+</p>
+
+
+
 <br>
 
-<div>
+<h3 align="middle">Textures</h3>
 
-<h2 align="middle">Problem Description:</h2>
+<p>
+<b>Creating and Binding a Texture:</b>
+<br><br>
+We use an image loading library called stb_image.h by Sean Barret to load our texture files. To use it, we must first bind a texture so that future texture functions will operate on our desired texture. Then, we generate the texture using the data we loaded from our texture image. However, as our rendered grass blocks have different textures for each face, we end up having to re-bind a new texture every time we want to render a new face. As each block has 6 faces, and we want to be able to render a large number of blocks, this quickly becomes a problem.
 
-<p>We will tackle the problem of rendering a large number of entities (blocks) in a game world traversable by the player. Rendering the whole world at full detail all the time is inefficient, so we will implement optimization techniques to speed up our game. Some techniques we may employ are selective rendering and reducing the level of detail for far away entities. We will also render appropriate environment lighting and general environment aesthetics, by employing techniques like ray tracing and path tracing. Of course, we will also have basic “game” (more like sandbox) capabilities.</p>
+<br><br><br>
+<b>Texture Atlas:</b>
+<br><br>
+Through the use of a texture atlas, we can avoid re-binding a texture every time we have to render a new object, making our code much more efficient. Previously, we would have to bind a new texture every time we draw a new face of a cube, as the top, sides, and bottom of the grass cube look different. However, with a texture atlas, we can bind the texture once, and use our texture coordinates to pick different parts of the texture corresponding to each face of the cube.
+<div align="center">
+  <img src="images/grass_atlas.png" align="middle" width="300px" alt="Grass texture atlas">
+  <p>The texture atlas we sampled from to create our grass block. The bottom right gray block is only included because we found it easier to use a square image.</p>
+</div>
+</p>
+<br>
 
-<h2 align="middle">Goals and Deliverables:</h2>
-<h3 align="middle">Questions we hope to answer:</h3>
-<ol type="1">
-  <li>How can we efficiently render a game world containing a large number of interactable entities?</li>
-  <li>How can we illuminate the game world realistically?</li>
-  <li>How can we make cubelike blocks look like real objects? (time permitting)</li>
-  <li>How do we simulate a day/night cycle with respect to world lighting? (time permitting)</li>
-</ol>
+<h3 align="middle">The Block Class</h3>
 
-<h3 align="middle">What we plan to deliver:</h3>
+<p></p>
 
+<br><br>
+
+<h3 align="middle">Placing and Removing Blocks</h3>
+
+<p></p>
+
+<br><br>
+
+<h3 align="middle">The Camera, and Movement</h3>
+
+<p></p>
+
+<br><br>
+
+<h3 align="middle">Shaders</h3>
+<p>
+<b>Vertex and Fragment Shaders:</b>
+<br><br>
+Just as we did during the course, we write our shaders in GLSL. For our purposes, our shaders must take in information about the player's position, the light's position, the texture, and be able to transform our objects into the 3D world space. We use a separate set of shaders to create our crosshair, which is a 2D cross that always rests in the middle of the screen independent of movement.
+
+<br><br><br>
+<b>Lighting:</b>
+<br><br>
+To give our world some lighting, we implemented Blinn-Phong shading. As we learned, this is a combination of ambient, diffuse, and specular lighting. In addition to this, we also implement gamma correction, which is supposed to give the lighting of our world a more realistic look. The use of gamma correction comes from the non-linear lighting scale that monitors use in order to display colors, which are supposed to look more pleasing to the human eye. However, this non-linear scale messes up physical light calculations, so we use gamma correction to correct this. In our case, it also gives our world a more pastel look, which can be seen in the results section.
+</p>
+
+<br>
+
+<h3 align="middle">Problems Encountered</h3>
+
+<p>Setting up OpenGL was an area that gave us a lot of issues. As we needed to use many different libraries (including GLFW<, GLAD, stb_image, etc.), we ended up spending a lot of time trying to get everything working. 
+<br><br>
+Another area that caused a lot of difficulty was figuring out how to use multiple textures in our scene. Initially, it was difficult just figuring out how to use different textures on different sides of the cube. However, even after figuring that out, we had to figure out how to bind textures more efficiently so that our game world didn't run too slowly. This is when we figured out to use the texture atlas.
+<br><br>
+We also had difficulty structuring our Block class. As we needed it to handle block collision, as well as for us to be able to remove and place blocks at will, we spent a lot of time thinking on how to best structure the class. We also wanted to build the class so that we could render large numbers of blocks in a simple and clean way.
+</p>
+
+<br>
+
+<h3 align="middle">Lessons Learned</h3>
+
+<p>Working on this project was a very fun and rewarding experience for all of us. Building a 3D game engine like this completely for scratch required a lot of work and understanding of OpenGL, and we were happy to have the chance to do so.</p>
+
+<br><br>
+
+
+
+<h2 align="middle">Results Showcase:</h2>
+<div align="center">
+<h3 align="middle">Textured Grass Cube</h3>
+<div align="center">
+  <img src="images/grasscube.gif" align="middle" width="600px" alt="Rotating grass-textured cube">
+</div>
+<p>One of the first steps of our project: rendering a 3D cube with different textures on its different faces. This gif was made early on in our project, when we were still using bilinear texture filtering instead of nearest neighbor. This is why the surface of this cube seems blurrier than the ones after.</p>
+<h3 align="middle">Multiple Grass Cubes</h3>
+<div align="center">
+  <video src="images/plane.mp4" align="middle" width="600px" type="video/mp4" controls></video>
+</div>
+<p>This was made after we figured out how to render multiple blocks into a scene. At this time, we actually had a bug where we were rendering twice the amount of blocks we wanted to, so that all of them except for the corner blocks were overlapping. This causes the flickering that you see in this video.</p>
+<h3 align="middle">Textures</h3>
+<div align="center">
+  <img src="images/textures.png" align="middle" width="300px" alt="All block textures">
+</div>
+<p>This shows all the different types of blocks we initially made for the project.</p>
+<h3 align="middle">Lighting</h3>
+<div align="center">
+  <img src="images/cubeshading.png" align="middle" width="1000px" alt="A comparison of the grass cube before and after implementing shading and gamma correction">
+</div>
+<p>This is a before and after comparison of the effect of shading on our grass block.</p>
+<div align="center">
+  <video src="images/shadows.mov" align="middle" width="600px" type="video/mov" controls></video>
+</div>
+<p>This shows our shaded plane.</p>
+<h3 align="middle">Movement</h3>
+<div align="center">
+  <img src="images/jump.gif" align="middle" width="450px" alt="Jumping">
+  <img src="images/fall.gif" align="middle" width="450px" alt="Falling off the game world">
+</div>
+<p>Jumping (left) and Falling off the game world (right)</p>
+</div>
+<br><br>
+  
+
+<h2 align="middle">References:</h2>
 <ul>
-  <li>Playable game with an environment made of blocks</li>
-  <li>The player will be able to destroy and build blocks.</li>
-  <li>The player will be able to control a character that moves around the game world.</li>
-  <li>The game world will be an island that contains several types of blocks with different appearances.</li>
-  <li>The game world will render at acceptable speeds. (Question 1)</li>
-	  	<ul>
-	  		<li>Metric: frames rendered per second, target >= 20</li>
-	  	</ul>
-  <li>The game world will incorporate realistic lighting with an immobile light source. (Question 2)</li>
-  		<ul>
-	  		<li>Metric: visual judgment, feedback from test trials</li>
-	  	</ul>
+  <li>Our biggest resource by far: <a href="https://learnopengl.com/">learnopengl.com</a></li>
+  <li>The setup tutorial on learnopengl.com doesn't cover the Mac setup process, especially in regards on how to properly link GLFW. Because I (George) have a mac, I had to consult many additional sources when setting up OpenGL. While following other online tutorials also didn't work for me, they did give me a better idea of what I needed to do, and also how to properly navigate Xcode. After I asked 184 TA Seth Lu for help, he was able to help me figure out my problems (thank you!). The below references are some of the more helpful ones I found online. All the OpenGL, GLFW, and GLAD library files I still obtained by following the steps indicated on learnopengl.com.</li>
+  <ul>
+	  <li><a href="https://fdhenard.github.io/xcode_setup_for_learn_opengl_tuts.html">Easy to follow steps.</a></li>
+	  <li><a href="https://giovanni.codes/opengl-setup-in-macos/">A more visual explanation with most of the same steps.</a></li>
+	  <li> For me, what worked was to:</li>
+	  <ul>
+		  <li>1. Configure the "Header Search Paths" in "Build Settings" with the correct include directory.</li>
+		  <li>2. Configure the "Library Search Paths" in "Build Settings" with the correct path to a directory including all the glfw library files.</li>
+		  <li>3. In "Build Phases" > "Link Binary with Libraries": Link ONLY "OpenGL.framework", "Cocoa.framework", "IOKit.framework", and "libglfw.a".</li>
+  	  </ul>
+  </ul>
+  <li>Image Loading Library: <a href="https://github.com/nothings/stb/blob/master/stb_image.h">stb_image.h</a></li>
+  <li><a href="https://0fps.net/2013/07/09/texture-atlases-wrapping-and-mip-mapping/">Texture Atlas idea</a></li>
+  <li><a href="https://gamedev.stackexchange.com/questions/47362/cast-ray-to-select-block-in-voxel-game?rq=1">Finding a Voxel along a ray</a></li>
+
 </ul>
+<br><br>
 
-<h3 align="middle">What we hope to deliver:</h3>
-
+<h2 align="middle">Individual Contributions:</h2>
+<p>
+We all worked on the project proposal, the milestone report, and the final presentation together. We also all worked through the setup and the basics of OpenGL together. Overall, the work was split pretty evenly throughout the project.
 <ul>
-  <li>Make the blocks look more realistic by implementing textures with bump mapping. (Question 3)</li>
-  <li>Include more types of blocks (e.g. rocks, dirt, lava)</li>
-  <li>Implement a day/night cycle with a sun that rises and sets (Question 4)</li>
-  <li>Be able to randomly generate game worlds according to parameters such as size, flatness, etc.</li>
-  <li>Make a game that’s enjoyable to play</li>
-	  	<ul>
-	  		<li>Metric: feedback from test trials</li>
-	  	</ul>
-  <li>Include background music</li>
+  <li>Grant Shimada: Came up with project idea. Made milestone website. Made final video.</li>
+  <li>George Wu: Created 3D game world made up of blocks. Implemented texture binding. Made crosshair. Implemented shading and gamma correction. Made final website.</li>
+  <li>Henry Zhang: Drew block assets. Implemented camera movement and keyboard controls. Made Block class. Implemented block collision and gravity. Implemented block placement and destruction.</li>
 </ul>
-
-<h2 align="middle">Schedule:</h2>
-<ul>
-	<li>Week 1:</li>
-	  	<ul>
-	  		<li>Learning OpenGL</li>
-	  		<li>Making assets (different block types, game world)</li>
-	  	</ul>
-	<li>Week 2:</li>
-	  	<ul>
-	  		<li>Make game with movable character</li>
-	  		<li>Add world interaction: destroying and placing blocks</li>
-	  	</ul>
-	<li>Week 3:</li>
-	  	<ul>
-	  		<li>Lighting and rendering optimization</li>
-	  		<li>Debugging</li>
-	  	</ul>
-	<li>Week 4:</li>
-	  	<ul>
-	  		<li>Test trials</li>
-	  		<li>Demo video + make presentation</li>
-	  		<li>Stretch goals</li>
-	  	</ul>
-</ul>
-
-<h2 align="middle">Resources:</h2>
-<ul>
-  <li><a href="https://learnopengl.com/">Online OpenGL tutorials</a></li>
-  <li>Stack Overflow, Google</li>
-  <li>Made with: OpenGL, C++</li>
-  <li>Hardware: 2 PCs, 1 Mac</li>
-</ul>
+</p>
 
 
 </body>
