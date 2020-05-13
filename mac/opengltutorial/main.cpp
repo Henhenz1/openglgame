@@ -26,8 +26,11 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+// world
+std::vector<Block> blocks;
+
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(&blocks, glm::vec3(0.0f, 0.0f, 3.0f));
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -43,9 +46,6 @@ float fov = 45.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float currentFrame;
-
-// world
-std::vector<Block> blocks;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -72,6 +72,22 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        camera.DestroyBlock();
+    }
+    else if (button = GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        camera.PlaceBlock();
+    }
+
+    /*if (button = GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        camera.UnlockDestroy();
+    }
+    if (button = GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+        camera.UnlockPlace();
+    }*/
+}
+
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -85,13 +101,13 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         camera.Desprint();
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime, blocks);
+        camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime, blocks);
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime, blocks);
+        camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime, blocks);
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 void handleGravity() {
@@ -104,11 +120,11 @@ void handleGravity() {
             highest = std::fmax(highest, b.position.y);
         }
     }
-    camera.Position.y = std::fmax(highest + 3, camera.Position.y + camera.YVelocity * deltaTime);
+    camera.Position.y = std::fmax(highest + 2.9f, camera.Position.y + camera.YVelocity * deltaTime);
     if (camera.Position.y < camera.killPlane) {
-        camera.Position = glm::vec3(0, 3, 0);
+        camera.Position = glm::vec3(0, 2.9, 0);
     }
-    if (camera.Position.y == highest + 3) {
+    if (camera.Position.y == highest + 2.9f) {
         camera.YVelocity = 0;
         camera.Gravity = -9.81f;
         camera.grounded = true;
@@ -195,6 +211,7 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     

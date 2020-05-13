@@ -9,6 +9,7 @@
 #include <math.h>
 #include "block/Block.h"
 
+
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -47,20 +48,30 @@ public:
     bool sprinting;
     bool grounded = true;
     bool bHopProt = false;
+    // Block selection attributes
+    float maxSelectDist = 6;
+    int CurrentBlockIndex;
+    glm::vec3 NextBlock;
+    std::vector<Block>* Blocks;
+    bool blockFound = false;
+    bool leftClicked = false;
+    bool rightClicked = false;
 
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+    Camera(std::vector<Block>* blocks, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
         Position = position;
         WorldUp = up;
         Yaw = yaw;
         Pitch = pitch;
+        Blocks = blocks;
         updateCameraVectors();
     }
 
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+    Camera(std::vector<Block>* blocks, float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
         Position = glm::vec3(posX, posY, posZ);
         WorldUp = glm::vec3(upX, upY, upZ);
         Yaw = yaw;
         Pitch = pitch;
+        Blocks = blocks;
         updateCameraVectors();
     }
 
@@ -68,7 +79,7 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime, std::vector<Block> blocks) {
+    void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
         glm::vec3 prevPos = Position;
         float sprintFactor = 1;
@@ -85,7 +96,7 @@ public:
         if (direction == RIGHT)
             Position += mRight * velocity;
 
-        for (Block b : blocks) {
+        for (Block b : *Blocks) {
             if (inRange(0, 2, Position.y - b.position.y)) {
                 if (Position.x < b.position.x + 1.3 && Position.x > b.position.x - 0.3) {
                     if (Position.z < b.position.z + 1.3 && prevPos.z >= b.position.z + 1.3) {
@@ -121,6 +132,7 @@ public:
 
         Pitch = std::fmin(89.0f, std::fmax(-89.0f, Pitch));
         updateCameraVectors();
+        //updateLook();
     }
     void Sprint() {
         if (!sprinting) {
@@ -143,6 +155,32 @@ public:
         bHopProt = false;
     }
 
+    void PlaceBlock() {
+        updateLook();
+        if (NextBlock != (glm::vec3)NULL) {
+            for (int i = 0; i < (*Blocks).size(); i++) {
+                Block b = (*Blocks)[i];
+                if (b.position == NextBlock) {
+                    return;
+                }
+            }
+            (*Blocks).emplace_back(NextBlock, grass, true);
+            std::cout << "Block placed at (" << NextBlock.x << ", " << NextBlock.y << ", " << NextBlock.z << ")" << std::endl;
+        }
+        updateLook();
+    }
+
+    void DestroyBlock() {
+        updateLook();
+        if (CurrentBlockIndex != Blocks->size() && CurrentBlockIndex != -1) {
+            std::cout << "Block removed at (" << (*Blocks)[CurrentBlockIndex].position.x << ", " << (*Blocks)[CurrentBlockIndex].position.y << ", " << (*Blocks)[CurrentBlockIndex].position.z << ")" << std::endl;
+            (*Blocks).erase((*Blocks).begin() + CurrentBlockIndex);
+        }
+        //Blocks->erase();
+        updateLook();
+    }
+
+
 private:
     // calculates Front vector from Camera's Euler angles
     void updateCameraVectors()
@@ -157,6 +195,97 @@ private:
         Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
     }
+
+    void updateLook() {    // with inspiration from https://gamedev.stackexchange.com/questions/47362/cast-ray-to-select-block-in-voxel-game?rq=1
+        glm::vec3 rayEnd = Position + maxSelectDist * Front;
+        glm::vec3 curr = Position;
+        glm::vec3 candidate;
+        float t = 0;
+        float currT;
+        float eps = 0.00001;
+        blockFound = false;
+        CurrentBlockIndex = -1;
+        NextBlock = (glm::vec3)NULL;
+        std::vector<Block>& vecRef = *Blocks;
+        while (blockFound == false && t < maxSelectDist) {
+            // position; self-explanatory
+            float x = Position.x;
+            float y = Position.y;
+            float z = Position.z;
+
+            // represents direction of front-facing vector; 0, 1, or -1
+            int dirX = signum(Front.x);
+            int dirY = signum(Front.y);
+            int dirZ = signum(Front.z);
+
+            // represents distance along view direction on each axis until next unit; always nonnegative
+            float dx = (dirX > 0) ? ceil(x) - x : (dirX < 0) ? x - floor(x) : INFINITY;
+            float dy = (dirY > 0) ? ceil(y) - y : (dirY < 0) ? y - floor(y) : INFINITY;
+            float dz = (dirZ > 0) ? ceil(z) - z : (dirZ < 0) ? z - floor(z) : INFINITY;
+
+            // how many times the Front vector can be added in each direction before reaching next unit; always nonnegative
+            float tX = dx / abs(Front.x);
+            float tY = dy / abs(Front.y);
+            float tZ = dy / abs(Front.z);
+
+            currT = fmin(tX, fmin(tY, tZ)) + eps;
+            if (currT < 2 * eps) {
+                break;
+            }
+
+            glm::vec3 axis;  // 1 2 3 for x y z; positive or negative depending on which side of the block the ray enters from (opposite of ray direction)
+            if (tX <= tY && tX <= tZ) {
+                if (dirX > 0) {
+                    axis = glm::vec3(-1, 0, 0);
+                }
+                else {
+                    axis = glm::vec3(1, 0, 0);
+                }
+            }
+            else if (tY <= tX && tY <= tZ) {
+                if (dirY > 0) {
+                    axis = glm::vec3(0, -1, 0);
+                }
+                else {
+                    axis = glm::vec3(0, 1, 0);
+                }
+            }
+            else if (tZ <= tY && tZ <= tX) {
+                if (dirX > 0) {
+                    axis = glm::vec3(0, 0, -1);
+                }
+                else {
+                    axis = glm::vec3(0, 0, 1);
+                }
+            }
+
+            t += currT;
+            //std::cout << "t = " << t << std::endl;
+            curr += currT * Front;
+            candidate = glm::vec3(int(floor(curr.x)), int(floor(curr.y)), int(floor(curr.z)));
+
+            for (int i = 0; i < vecRef.size(); i++) {
+                Block b = vecRef[i];
+                if (b.position == candidate) {
+                    CurrentBlockIndex = i;
+                    blockFound = true;
+                    /*std::cout << "dx, dy, dz= " << dx << ", " << dy << ", " << dz << std::endl;
+                    std::cout << "tX, tY, tZ = " << tX << ", " << tY << ", " << tZ << std::endl;
+                    std::cout << candidate.x << ", " << candidate.y << ", " << candidate.z << std::endl;*/
+                    NextBlock = candidate + axis;
+                    break;
+                }
+            }
+
+            
+
+        }
+    }
+
+    int signum(float x) {
+        return x > 0 ? 1 : x < 0 ? -1 : 0;
+    }
+
 };
 
 #endif
