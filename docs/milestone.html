@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>Final Project Milestone: Cube Constructor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">Cube Constructor</h1>
+<h1 align="middle">Final Project Milestone</h1>
+<h2 align="middle">Team members:</h2>
+<h3 align="middle">Grant Shimada 3031995253, George Wu 3032379223, Henry Zhang 3031862185</h3>
+
+<br>
+  
+  Slides: <a href="url">https://docs.google.com/presentation/d/1CxOyGD1LAPt0M67CkUDeAYBY6R6jt43I5RjYPIbfIFA/edit#slide=id.g845e72c830_2_3</a>
+  Video: <a href="url">https://drive.google.com/file/d/1vggzZoIAyUtzhaoiHWBUCCtXQMpt9osy/view</a>
+  <h2 align="middle">Progress, Preliminary Results, and Accomplishments</h2>
+<p>We feel that we have made decent progress relative to our planned deliverables. We spent the bulk of our time becoming familiar with the OpenGL framework. https://learnopengl.com/ proved to be an invaluable resource for this undertaking and the subsequent writing of our code.
+Depicted below is one step in the tutorial: displaying a window.</p>
+<div align="center">
+  <img src="images/window.png" align="middle" width="400px">
+</div>
+
+<br>
+
+<p>We created some simple art assets to represent a variety of terrain, including grass/dirt, water, and multicolored blocks. </p>
+<div align="center">
+  <img src="images/textures.png" align="middle" width="400px">
+</div>
+<br>
+
+<p>The player is capable of moving around the game world with the WASD keys and the mouse. For now, this has been implemented by simply moving the camera directly in world space. Eventually, the camera should be attached to a player object that can be moved with player input. Since we intend for the player to walk around the world (as opposed to flying), movement vectors are projected to the XZ plane and normalized. The player can also “sprint” by holding down the Left Shift key when moving forward. 
+Currently, movement is constrained to the y=0 plane because player gravity and block collision have not yet been implemented. Our immediate next steps will be to work on these, which will also allow us to implement the ability of the player to jump. Once the player actions are complete, we will be able to begin implementation of the construction/destruction mechanics, and finally add various other graphical enhancements to the game.
+</p>
+<div align="center">
+  <video src="images/grass.mp4" align="middle" width="600px" type="video/mp4" controls></video>
+  <video src="images/plane.mp4" align="middle" width="600px" type="video/mp4" controls></video>
+</div>
+
+  <h2 align="middle">Reflection/Updates</h2>
+<p>So far, things appear to look good and as intended. We feel that for now, we should be on track to deliver what we planned, though we expect to have 
+difficulties regarding the physics/handling of block collisions and destroying/placing blocks. The textures are also quite glitchy when 
+moving the camera quickly, which seems like a difficult obstacle to overcome.</p> 
+
+</body>
+</html>
