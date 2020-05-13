@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <vector>
 
 enum BlockType {
 	grass = 0,
@@ -20,10 +21,11 @@ public:
 	BlockType bt;
 	bool isSolid;
 	bool destroyed;
+	std::vector<Block>* Home;
 
 	// constructor
-	Block();
-	Block(glm::vec3 pos, BlockType bt, bool solid);
+	Block(std::vector<Block>* home);
+	Block(glm::vec3 pos, BlockType bt, bool solid, std::vector<Block>* home);
 
 	void Destroy();
 };
